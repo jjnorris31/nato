@@ -7,20 +7,29 @@
         <h1 class="n1 mt-4 mb-2">Mis notas</h1>
       </v-col>
       <v-col cols="10">
-        <v-list two-line class="text-left">
-          <v-list-item v-for="(value, index) in notes" class="mb-2" :key="index" :style="{ backgroundColor: value.color}">
-            <v-list-item-content>
-              <v-list-item-title>{{value.title}}</v-list-item-title>
-              <v-list-item-subtitle>{{value.content}}</v-list-item-subtitle>
-            </v-list-item-content>
-            <v-list-item-action>
-              <v-btn icon @click="deleteNote(index)">
-                <v-icon>
-                  mdi-delete
-                </v-icon>
-              </v-btn>
-            </v-list-item-action>
-          </v-list-item>
+        <v-list two-line class="text-left grey-background">
+          <v-fade-transition v-for="(value, index) in notes" :key="index">
+            <v-list-item class="mb-2"
+                         @click="individualNote()"
+                         :style="{ backgroundColor: value.color}">
+              <v-list-item-content>
+                <v-list-item-title>{{value.title}}</v-list-item-title>
+                <v-list-item-subtitle>{{value.content}}</v-list-item-subtitle>
+              </v-list-item-content>
+              <v-list-item-action>
+                <v-tooltip left>
+                  <template v-slot:activator="{on}">
+                    <v-btn @click="deleteNote(index)" icon v-on="on">
+                      <v-icon>
+                        mdi-delete
+                      </v-icon>
+                    </v-btn>
+                  </template>
+                  <span>Borrar</span>
+                </v-tooltip>
+              </v-list-item-action>
+            </v-list-item>
+          </v-fade-transition>
         </v-list>
       </v-col>
     </v-row>
@@ -37,16 +46,39 @@
       <v-icon large>mdi-plus</v-icon>
     </v-btn>
   
-    <v-dialog :value="noteActivator">
+    <v-dialog :value="noteActivator" >
       <v-card>
-        <v-card-title class="n2 mb-2 pl-8">Vamos, dame esa nota</v-card-title>
-        <v-row justify="center" no-gutters>
-          <v-col cols="10">
-            <v-text-field v-model="newTitle" outlined placeholder="Título de nota" style="font-family: Lato, sans-serif"></v-text-field>
-            <v-textarea v-model="newContent" outlined placeholder="Descripción de nota" style="font-family: Lato, sans-serif"></v-textarea>
+        <v-row justify="center" class="mx-0">
+          <v-col cols="10" class="mt-4">
+            <h2 style="font-family: Poppins, sans-serif; font-weight: 500; color: #33B5FB">Nueva nota</h2>
           </v-col>
-          <v-col cols="4" offset="6" class="mb-4">
-            <v-btn @click="newNote" style="font-family: Lato, sans-serif" color="#33B5FB"  block dark flat class="btn-blue">Guardar</v-btn>
+          <v-col cols="10">
+            <h4>Título</h4>
+            <input class="text-input input-format"
+                   style="height: 45px"
+                   :class="{'note-content-on' : focusText}"
+                   @focusin="changeFocusText"
+                   @focusout="exitFocusText"
+                   v-model="newTitle"
+                   type="text">
+          </v-col>
+          <v-col cols="10">
+            <h4>Contenido</h4>
+            <v-card :class="{'note-content-on' : focus}" flat style="height: 150px">
+              <v-row class="text-input" style="height: 100%">
+                <textarea class="input-format"
+                          style="height: 100%; width: 100%"
+                          v-model="newContent"
+                          @focusin="changeFocus"
+                          @focusout="exitFocus">
+                  </textarea>
+              </v-row>
+            </v-card>
+          </v-col>
+          <v-col cols="4"
+                 offset="5"
+                 class="d-flex align-center">
+            <v-btn @click="newNote" style="font-family: Poppins, sans-serif" color="#33B5FB"  block dark flat class="btn-blue">Guardar</v-btn>
           </v-col>
         </v-row>
       </v-card>
@@ -61,7 +93,10 @@
             noteColors: ['#DEF2FE', '#D2F3D1', '#FEECDE', '#F7F6C5'],
             newTitle: '',
             newContent: '',
+            expand: true,
             noteActivator: false,
+            focus: false,
+            focusText: false,
             notes: [
                 {
                     title: 'Nota increíble #1',
@@ -98,6 +133,25 @@
             },
             deleteNote(index) {
                 this.notes.splice(index, 1);
+            },
+            changeFocus() {
+                this.focus = true;
+                console.log(this.focus)
+            },
+            exitFocus() {
+                this.focus = false;
+                console.log(this.focus)
+            },
+            changeFocusText() {
+                this.focusText = true;
+                console.log(this.focus)
+            },
+            exitFocusText() {
+                this.focusText = false;
+                console.log(this.focus)
+            },
+            individualNote() {
+                this.$router.push('/note');
             }
         }
     }
@@ -110,14 +164,21 @@
   
   .n1 {
     font-weight: lighter;
-    font-family: Lato, sans-serif;
+    font-family: Poppins, sans-serif;
     font-size: 30px;
     color: #33B5FB;
   }
   
+  h4 {
+    font-size: 16px !important;
+    font-family: Poppins, sans-serif;
+    font-weight: 500 !important;
+    color: #696C71;
+  }
+  
   .n2 {
-    font-weight: lighter;
-    font-family: Lato, sans-serif;
+    font-weight: normal;
+    font-family: Poppins, sans-serif;
     font-size: 22px !important;
     color: #33B5FB;
   }
@@ -125,7 +186,39 @@
   .btn-blue {
     letter-spacing: 0 !important;
   }
+  
+  .text-input {
+    height: 60%;
+    margin: 4px 0;
+    font-family: Poppins, sans-serif;
+    font-size: 14px;
+    border-radius: 2px;
+    color: #959796;
+    -webkit-box-shadow: 3px 3px 20px -2px rgba(0,0,0,0.3);
+    -moz-box-shadow: 3px 3px 20px -2px rgba(0,0,0,0.3);
+    box-shadow: 0px 2px 6px -2px rgba(0,0,0,0.3);
+  }
+  
+  .input-format {
+    width: 100%;
+    padding: 8px 10px;
+  }
+  
+  .note-content-on {
+    outline: rgba(51, 181, 251, .25) solid 2px !important;
+  }
+  
+  .note-content-off {
+    outline: none;
+  }
+  
+  .input-format:focus {
+    outline-color: transparent;
+  }
 
+  .grey-background {
+    background-color: var(--grey-light) !important;
+  }
 
 
   .note-item {
